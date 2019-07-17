@@ -1,11 +1,11 @@
-#define FRENTE 31.9
+#define FRENTE 35
 #define OBSTACULO 60
 #define SEGUIDOR 45
 #define vel_F 45
 #define vel_R 50
 #define RAMPA 90
 #define frentao 100
-#define limiar 20
+#define limiar 22
 
 //--- Fim dos parametros de controle de velocidade ---
 //======================================================================================
@@ -68,13 +68,14 @@ void lerSensorDeLinha(){
     VA = ColorNum;
     VB = ColorNum_2;
 
-     ClearScreen();
+     /*ClearScreen();
      NumOut(20, LCD_LINE2, A);//meio direita
      NumOut(20, LCD_LINE6, B);//meio esqu\erda
 
      NumOut(60, LCD_LINE2, VA);
      NumOut(60, LCD_LINE6, VB);
      Wait(10);
+     */
 
      //A e D
      //B e C
@@ -90,12 +91,12 @@ void lerDistancia(){
 
        SetSensor(IN_4, SENSOR_TOUCH);
        Ultra = Sensor(IN_4);
-       NumOut(60, LCD_LINE4, Ultra);
+       //NumOut(60, LCD_LINE4, Ultra);
 }
 void lerResgate(){
        SetSensor(IN_1, SENSOR_TOUCH);
        Resgate = Sensor(IN_1);
-       NumOut(20, LCD_LINE4, Resgate);
+       //NumOut(20, LCD_LINE4, Resgate);
 }
 
 //--- Fim da função de leitura dos sensores: inclinação e toques ---
@@ -251,30 +252,15 @@ void Seguidor(){
   {
          Direita_F();
   }
-  
+
   //Preto - Preto:
   //Análise para detectar até que um sensor saia do preto e ou outro no branco
   lerSensorDeLinha();
   if(A < preto && B < preto){
    while(A < preto && B < preto){
      Frente();}
-
+     
   lerSensorDeLinha();
-  if(VA == verde && B > branco || VA == verde_2 && B > branco){
-  while(VA == verde && B > branco || VA == verde_2 && B > branco){
-     Frente();}
-  }
-  lerSensorDeLinha();
-  if(VA == verde && A > branco || VA == verde_2 && A >  branco){
-  while(VA == verde && A > branco || VA == verde_2 && A >  branco){
-     Frente();}
-  }
- lerSensorDeLinha();
- if(VA == verde && VB == verde || VA == verde_2 && VB == verde_2){
-  while(VA == verde && VB == verde || VA == verde_2 && VB == verde_2){
-     Frente();}
-  }
- lerSensorDeLinha();
      if(A < preto && B > branco){
         Frente();
         Wait(100);
@@ -282,8 +268,9 @@ void Seguidor(){
         Wait(10);
         lerSensorDeLinha();
         while(B > branco){
-         Direita_F();}//fim do 2 while
+         Direita();}//fim do 2 while
      }//fim do 2 if
+     
      if(A > branco && B < preto){
         Frente();
         Wait(100);
@@ -291,20 +278,21 @@ void Seguidor(){
         Wait(10);
         lerSensorDeLinha();
         while(A > branco){
-         Esquerda_F();}//fim do 2 while
+         Esquerda();}//fim do 2 while
      }//fim do 2 if
-   }
+  }
+
 }
 
 //--- Fim da função para controle e execução do seguidor de linha normal ---
-//======================================================================================
+//=====================================================================================
 
 //======================================================================================
 //--- Função para detectar os verdes antes do seguidor normal ---
 
 void seguidorVerde(){
        lerSensorDeLinha();
-
+       
           //---Verde Verde---
     if (VA == verde && VB == verde || VA == verde_2 && VB == verde_2){
        Parar();
@@ -336,20 +324,26 @@ void seguidorVerde(){
     //---Verde Direita---
     lerSensorDeLinha();
     if (VA == verde && B > branco || VA == verde_2 && B > branco){
+       Parar();
+       Wait(45);
     while(VA == verde && B > branco || VA == verde_2 && B > branco){
        Frente();
        Wait(100);}
        lerSensorDeLinha();
+       //Verde falso---
+       if(A > branco){
+        Frente();
+       }
        if(A < preto){
         while(A < preto){
          Frente();
-         Wait(150);}
+         Wait(200);}
          //while(!(B < preto)){
          //Direita();}
         }
         lerSensorDeLinha();
         if(A > branco){
-         RotateMotorEx(OUT_BC, 60, 420, 100, true, true);
+         RotateMotorEx(OUT_BC, 60, 400, 100, true, true);
          Parar();
          Wait(10);
          Tras();
@@ -359,18 +353,24 @@ void seguidorVerde(){
     lerSensorDeLinha();
     //---Verde Esquerda---
     if (A > branco && VB == verde || A > branco && VB == verde_2){
+       Parar();
+       Wait(45);
     while(A > branco && VB == verde || A > branco && VB == verde_2){
        Frente();
        Wait(100);}
        lerSensorDeLinha();
+       //---Verde falso---
+       if(B > branco){
+        Frente();
+       }
        if(B < preto){
         while(B < preto){
          Frente();
-         Wait(150);}
+         Wait(200);}
         }
         lerSensorDeLinha();
         if(A > branco){
-         RotateMotorEx(OUT_BC, 60, 425, -100, true, true);
+         RotateMotorEx(OUT_BC, 60, 400, -100, true, true);
          Parar();
          Wait(10);
          Tras();
@@ -384,51 +384,10 @@ void seguidorVerde(){
 
 //======================================================================================
 //--- Função para desvio de obstaculo para os dois lados ---
-void desvio(){
+void desvioEsquerda(){
 
-     int x;
-
-     x = Random(3);
-
-     //Direita
-     if(x == 1){
-      Tras();
-      Wait(600);
-      Parar();
-      Wait(100);
-      Direita_O();
-      Wait(1000);
-      Parar();
-      Wait(100);
-      Frente_O();
-      Wait(600);
-      Parar();
-      Wait(10);
-      OnFwd(OUT_B, 80);
-      OnFwd(OUT_C, 20);
-      Wait(4300);
-      Parar();
-      Wait(10);
-
-      lerSensorDeLinha();
-      if(B > branco){
-      while(B > branco){
-           Frente();
-           Wait(50);}
-      lerSensorDeLinha();
-      if(B < preto){
-      while(B < preto){
-         Frente();
-         Wait(50);}
-         lerSensorDeLinha();
-         while(B > branco){
-          Direita();}
-      }
-   }//fim do if
-}//fim do x
-
+     lerSensorDeLinha();
       //Esquerda
-      if(x == 2){
       Tras();
       Wait(600);
       Parar();
@@ -438,32 +397,35 @@ void desvio(){
       Parar();
       Wait(100);
       Frente_O();
-      Wait(600);
+      Wait(500);
       Parar();
       Wait(10);
       OnFwd(OUT_B, 20);
       OnFwd(OUT_C, 80);
-      Wait(4250);
+      Wait(4200);
       Parar();
       Wait(10);
 
       lerSensorDeLinha();
-      if(A > branco){
-      while(A > branco){
-           Frente();
-           Wait(50);}
-      lerSensorDeLinha();
-      if(A < preto){
-      while(A < preto){
-         Frente();
-         Wait(50);}
-         lerSensorDeLinha();
-         while(A > branco){
-         Esquerda();}
+      if(A > branco || B > branco){
+      while(A > branco || B > branco){
+           Frente();}
       }
-   }//fim do if
-  }//fim do x
+           
+      lerSensorDeLinha();
+      if(A < preto || B < preto){
+         Frente();
+         Wait(600);
+         Parar();
+         Wait(10);}
+         lerSensorDeLinha();
+         if(A > branco){
+         while(A > branco){
+          Esquerda();}
+         }
+lerSensorDeLinha();
 }
+
 
 //--- Fim da função desvio de obstaculo ---
 //======================================================================================
@@ -853,7 +815,7 @@ task main(){
     lerDistancia();
     lerResgate();
     if(Resgate == 0){
-    desvio();}
+    desvioEsquerda();}
     if(Ultra == 1){
     while(Ultra == 1){
     seguidorRampa();}//fim do 1 while
