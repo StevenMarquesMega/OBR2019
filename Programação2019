@@ -1,8 +1,8 @@
-#define FRENTE 35
+#define FRENTE 30
 #define OBSTACULO 60
-#define SEGUIDOR 45
-#define vel_F 45
-#define vel_R 50
+#define SEGUIDOR 40
+#define vel_F 55
+#define vel_R 52
 #define RAMPA 90
 #define frentao 100
 #define limiar 22
@@ -28,6 +28,9 @@ int  ColorNum_2, Red_2, Green_2, Blue_2;
 //--- Variavel para controle de rotação ---
 
 int curva = 600;
+int Rotacao = 500; //Duas rotações.
+int Volta = 575;
+int BB;
 
 //--- Fim da varivavel que equivale a uma rotação ---
 //======================================================================================
@@ -50,7 +53,7 @@ void RV();
 //======================================================================================
 
 //======================================================================================
-//--- Função para fazer leitura do sensor de cor HITECHNIC ---
+//--- Função para fazer leitura do sensor de cor HIo0[                                  TECHNIC ---
 
 void lerSensorDeLinha(){
 
@@ -186,7 +189,7 @@ void Parar()  {
 }
 void curva135Direita(){
      //RotateMotorEx(‘ports',‘speed',‘degrees',‘turnpct',‘sync', 'stop')
-     RotateMotorEx(OUT_BC, 60, 1.5*curva, 100, true, true);
+     RotateMotorEx(OUT_BC, 60, 1.3*curva, 100, true, true);
      lerSensorDeLinha();
 }
 void curva135Esquerda(){
@@ -233,55 +236,145 @@ void Direita_O()  {
 //--- Função para controle e execução do seguidor de linha normal ---
 
 void Seguidor(){
-
+  
   //Branco -  Branco: Frente
   lerSensorDeLinha();
   if(A > branco && B > branco)
   {
          Frente();
-  }
 
+         BB = MotorRotationCount(OUT_B);
+         if(BB >= Rotacao){
+            Parar();
+            Wait(10);
+
+            lerSensorDeLinha();
+            if(A > branco && B > branco){
+            Esquerda();
+            Wait(200);
+            Parar();
+            Wait(10);}
+
+            lerSensorDeLinha();
+            if(A > branco){
+              Direita();
+              Wait(250);
+              Parar();
+              Wait(10);
+              OnRev(OUT_BC, 80);
+              Wait(Volta);
+              Parar();
+              Wait(10);
+              
+            lerSensorDeLinha();
+            if(A > branco && B > branco){
+            Esquerda();
+            Wait(200);
+            Parar();
+            Wait(10);}
+
+            lerSensorDeLinha();
+            if(A > branco){
+              Direita();
+              Wait(250);
+              Parar();
+              Wait(10);
+              OnRev(OUT_BC, 80);
+              Wait(400);
+              Parar();
+              Wait(10);}
+
+            lerSensorDeLinha();
+            if(A < preto){
+              Frente();}
+         }
+  }
+}
   //Branco - Preto: Esquerda
   if(A > branco && B < preto)
   {
          Esquerda_F();
+         ResetRotationCount(OUT_B);
   }
 
   //Preto - Branco: Direita
   if(A < preto && B > branco)
   {
          Direita_F();
+         ResetRotationCount(OUT_B);
   }
-
+  
   //Preto - Preto:
   //Análise para detectar até que um sensor saia do preto e ou outro no branco
   lerSensorDeLinha();
   if(A < preto && B < preto){
-   while(A < preto && B < preto){
-     Frente();}
-     
+     Frente();
+     Wait(300);
+     Parar();
+     Wait(10);
+
   lerSensorDeLinha();
+  if (VA == verde && B > branco || VA == verde_2 && B > branco
+   || VA == verde && B < preto  || VA == verde_2 && B < preto){
+       Frente();}
+       
+  if (VA == verde && A > branco || VA == verde_2 && A > branco
+   || VA == verde && A < preto || VA == verde_2 && A < preto){
+       Frente();}
+
+  if(A > branco && B > branco){
+  
+  /*lerSensorDeLinha();
      if(A < preto && B > branco){
         Frente();
-        Wait(100);
+        Wait(150);
         Parar();
         Wait(10);
         lerSensorDeLinha();
-        while(B > branco){
+        if(A < preto || B < preto){
+          Frente();}
+        while(A > branco ){
          Direita();}//fim do 2 while
      }//fim do 2 if
-     
+
      if(A > branco && B < preto){
         Frente();
-        Wait(100);
+        Wait(150);
         Parar();
         Wait(10);
         lerSensorDeLinha();
-        while(A > branco){
+        if(A < preto || B < preto){
+          Frente();}
+        while(B > branco){
          Esquerda();}//fim do 2 while
-     }//fim do 2 if
+      }//fim do 2 if
+   }
+   */
+   
+     Esquerda();
+     Wait(300);
+     Parar();
+     Wait(10);}
+     lerSensorDeLinha();
+     if(A < preto || B < preto){
+       Frente();}
+     else if(A > branco || B > branco){
+       Direita();
+       Wait(600);
+       Parar();
+       Wait(10);
+     lerSensorDeLinha();
+     if(A > branco || B > branco){
+       Direita();
+       Wait(1500);
+     }
+     lerSensorDeLinha();
+     if(B > branco){
+     while(B > branco){
+      Esquerda();}
+      }
+    }
   }
-
 }
 
 //--- Fim da função para controle e execução do seguidor de linha normal ---
@@ -292,7 +385,7 @@ void Seguidor(){
 
 void seguidorVerde(){
        lerSensorDeLinha();
-       
+
           //---Verde Verde---
     if (VA == verde && VB == verde || VA == verde_2 && VB == verde_2){
        Parar();
@@ -301,11 +394,6 @@ void seguidorVerde(){
        while(VA == verde && VB == verde || VA == verde_2 && VB == verde_2){
          Frente();
          Wait(50);}
-
-         //---Verde falso--
-         lerSensorDeLinha();
-         if(A > branco && B > branco){
-            Seguidor();}
 
          //---Verde Verdadeiro---
          lerSensorDeLinha();
@@ -318,9 +406,16 @@ void seguidorVerde(){
 
             curva135Direita();
             Tras();
-            Wait(0.002);
+            Wait(0.02);
+            //ResetRotationCount(OUT_BC);
        }//fim do 1IF
 
+       //---Verde falso--
+         lerSensorDeLinha();
+         if(A > branco && B > branco){
+            //ResetRotationCount(OUT_BC);
+            Seguidor();}
+            
     //---Verde Direita---
     lerSensorDeLinha();
     if (VA == verde && B > branco || VA == verde_2 && B > branco){
@@ -328,7 +423,7 @@ void seguidorVerde(){
        Wait(45);
     while(VA == verde && B > branco || VA == verde_2 && B > branco){
        Frente();
-       Wait(100);}
+       Wait(90);}
        lerSensorDeLinha();
        //Verde falso---
        if(A > branco){
@@ -347,7 +442,8 @@ void seguidorVerde(){
          Parar();
          Wait(10);
          Tras();
-         Wait(0.002);
+         Wait(0.02);
+         //ResetRotationCount(OUT_BC);
         }
        }
     lerSensorDeLinha();
@@ -357,7 +453,7 @@ void seguidorVerde(){
        Wait(45);
     while(A > branco && VB == verde || A > branco && VB == verde_2){
        Frente();
-       Wait(100);}
+       Wait(90);}
        lerSensorDeLinha();
        //---Verde falso---
        if(B > branco){
@@ -374,7 +470,8 @@ void seguidorVerde(){
          Parar();
          Wait(10);
          Tras();
-         Wait(0.002);
+         Wait(0.02);
+         //ResetRotationCount(OUT_BC);
         }
        }
        Seguidor();
@@ -411,7 +508,7 @@ void desvioEsquerda(){
       while(A > branco || B > branco){
            Frente();}
       }
-           
+
       lerSensorDeLinha();
       if(A < preto || B < preto){
          Frente();
@@ -687,6 +784,7 @@ void ResInicio(){
      lerResgate();
      if(Resgate == 0){
      RV();}
+
      Parar();
      Wait(10);
      RotateMotor(OUT_BC, 80, -1300);
@@ -810,8 +908,10 @@ task main(){
     Wait(1300);
     Garra_P();
     lerSensorDeLinha();
+    ResetRotationCount(OUT_B);
     while(true){
     lerSensorDeLinha();
+    seguidorVerde();
     lerDistancia();
     lerResgate();
     if(Resgate == 0){
@@ -824,8 +924,6 @@ task main(){
     seguidorRampa();}//fim do 2 while
     }//fim do 2 if
     }//fim do 1 if
-    lerSensorDeLinha();
-    seguidorVerde();
  }
 }
 //--- Fim da função principa de controle do robô ---
