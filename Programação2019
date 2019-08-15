@@ -1,8 +1,8 @@
 #define FRENTE 37
 #define OBSTACULO 60
 #define SEGUIDOR 45
-#define vel_F 47
-#define vel_R 45
+#define vel_F 45
+#define vel_R 48
 #define RAMPA 90
 #define frentao 100
 #define limiar 15
@@ -13,7 +13,7 @@
 //======================================================================================
 //--- Variaveis de controle e atribuição de valores para seguidor de linha e verdes ---
 
-int preto = 82;  // menor que 82 preto
+int preto = 82; // menor que 82 preto
 int branco = 82;// maior que 82 branco
 int VD = 43;
 int VE = 42;
@@ -79,8 +79,7 @@ void lerSensorDeLinha(){
     VB = ColorNum_2;
 
 
-
-    /* ClearScreen();
+     /*ClearScreen();
      NumOut(20, LCD_LINE2, A);//meio direita
      NumOut(20, LCD_LINE6, B);//meio esqu\erda
 
@@ -262,38 +261,67 @@ void Seguidor(){
   //Branco - Preto: Esquerda
   if(A > branco && B < preto)
   {
-         Esquerda_F();
+         OnFwd(OUT_B, 60);
+         OnRev(OUT_C, 55);
+         
+         lerSensorDeLinha();
+         if(A < preto && B  < preto){
+         Parar();
+         Wait(10);
+         while(A < preto && B  < preto){
+          Frente();
+          Wait(150);}
+          while(!(A < preto)){
+           Esquerda();}
+         }
          ResetRotationCount(OUT_B);
+         
   }
   //Preto - Branco: Direita
   if(A < preto && B > branco)
   {
-         Direita_F();
+         OnFwd(OUT_C, 60);
+         OnRev(OUT_B, 50);
+         
+         lerSensorDeLinha();
+         if(A < preto && B < preto){
+         Parar();
+         Wait(10);
+         while(A < preto && B < preto){
+          Frente();
+          Wait(150);}
+          while(!(B < preto)){
+           Direita();}
+         }
          ResetRotationCount(OUT_B);
   }
+  
   //Preto - Preto:
   lerSensorDeLinha();
-  if(A < preto && B < preto || VA == verde && VB == verde || VA == verde_2 && VB == verde_2 ){
-   while(A < preto && B < preto || VA == verde && VB == verde || VA == verde_2 && VB == verde_2){
+  if(A < preto && B < preto || VA == verde && VB == verde || VA == verde_2 && VB == verde_2
+    || VA == verde && B < preto || VB == verde && A < preto){
+   while(A < preto && B < preto || VA == verde && VB == verde || VA == verde_2 && VB == verde_2
+    || VA == verde && B < preto || VB == verde && A < preto){
       Frente();
-      Wait(0.01);}
+      Wait(50);}
       Parar();
       Wait(0.03);
 
       //Verde-falso-Direita
       lerSensorDeLinha();
-      if(VA == verde || VA == verde_2){
-      while(VA == verde || VA == verde_2){
+      if(VA == verde || VA == verde_2 || VA == verde && B < preto){
+      while(VA == verde || VA == verde_2 || VA == verde && B < preto){
        Frente();}
        if(A > branco){
        Frente();}
        ResetRotationCount(OUT_B);
       }
 
+
       //Verde-falso-Esquerda
       lerSensorDeLinha();
-      if(VB == verde || VB == verde_2){
-      while(VB == verde || VB == verde_2){
+      if(VB == verde || VB == verde_2 || VB == verde && A < preto){
+      while(VB == verde || VB == verde_2 || VB == verde && A < preto){
        Frente();}
        if(B > branco){
        Frente();}
@@ -368,41 +396,52 @@ void Seguidor(){
 //======================================================================================
 //--- Função para detectar os verdes antes do seguidor normal ---
 
+
 void seguidorVerde(){
        lerSensorDeLinha();
 
     //---Verde Verde---
-    if (VA == verde && VB == verde || VA == verde_2 && VB == verde_2){
-       while(VA == verde && VB == verde || VA == verde_2 && VB == verde_2){
-         Frente();}
+  if ((VA == verde || VB == verde) || (VA == verde_2 || VB == verde_2)){
+         Parar();
+         Wait(100);}
+
          //---Verde Verdadeiro---
          lerSensorDeLinha();
-         if(A < preto || B < preto){
-         while(A < preto || B < preto){
+      if((VA == verde && VB == verde) || (VA == verde_2 && VB == verde_2)){
+         while((VA == verde && VB == verde) || (VA == verde_2 && VB == verde_2)){
+         Frente();}
+
+         lerSensorDeLinha();
+      if((A < preto && B < preto) || (A < preto) || (B < preto)){
          Frente();
-         Wait(100);}//fim do 2 while
-         }//fim do 2 if
+         Wait(150);
+         Parar();}
+
+         lerSensorDeLinha();
+      if((A > branco && B > branco) || (A > branco) || (B > branco)){
+         Parar();
+         Wait(10);}
 
             curva135Direita();
             Tras();
             Wait(15);
             ResetRotationCount(OUT_B);
-       }//fim do 1IF
 
+         }
 
     //---Verde Direita---
     lerSensorDeLinha();
-    if(VA == verde || VA == verde_2 && B > branco
-    || VA == VD && B > branco || VA == VE && B > branco){
+    if((VA == verde) || (VA == verde_2)
+    || (VA == VD) || (VA == VE)){
        Parar();
        Wait(10);
 
-    if(VA == verde && VB == verde || VA == verde_2 && VB == verde_2){
+    if((VB == verde) || (VB == verde_2)){
        lerSensorDeLinha();
          if(A < preto || B < preto){
          while(A < preto || B < preto){
          Frente();
-         Wait(100);}//fim do 2 while
+         Wait(150);}//fim do 2 while
          }//fim do 2 if
 
             curva135Direita();
@@ -411,21 +450,36 @@ void seguidorVerde(){
             ResetRotationCount(OUT_B);
      }
     while(VA == verde || VA == verde_2 || VA == VD  || VA == VE ){
+       Tras();
+       Wait(100);}
+       lerSensorDeLinha();
+       if(A > branco){
+       lerSensorDeLinha();
+       while(A > branco){
        Frente();}
+       }
+       lerSensorDeLinha();
+       if((VA == verde) || (VA == verde_2)
+       || (VA == VD) || (VA == VE)){
+       lerSensorDeLinha();
+       while((VA == verde) || (VA == verde_2)
+       || (VA == VD) || (VA == VE)){
+       Frente();}
+       }
        lerSensorDeLinha();
        if(A < preto){
          Frente();
-         Wait(200);}
-         //while(!(B < preto)){
-         //Direita();}
+         Wait(250);}
         lerSensorDeLinha();
-        if(A > branco){
+        if(A > branco || A < preto){
          RotateMotorEx(OUT_BC, 60, 370, 100, true, true);
          Parar();
          Wait(10);
          Tras_2();
-         Wait(1);
-         
+         Wait(15);
+         Frente();
+         Wait(5);
+
          ResetRotationCount(OUT_B);
         }
         if(VA == verde || VA == verde_2){
@@ -438,12 +492,12 @@ void seguidorVerde(){
 
     lerSensorDeLinha();
     //---Verde Esquerda---
-    if (A > branco && VB == verde || A > branco && VB == verde_2
-     || VA == VD && A > branco || VA == VE && A > branco){
+    if ((VB == verde) || (VB == verde_2)
+     || (VB == VD)  || (VB == VE)) {
        Parar();
-       Wait(100);
-    if(VA == verde && VB == verde || VA == verde_2 && VB == verde_2){
+       Wait(10);
 
+    if((VA == verde) || (VA == verde_2)){
       lerSensorDeLinha();
          if(A < preto || B < preto){
          while(A < preto || B < preto){
@@ -457,19 +511,42 @@ void seguidorVerde(){
             ResetRotationCount(OUT_B);
     }
     while(VB == verde || VB == verde_2 || VA == VD || VA == VE){
+       Tras();
+       Wait(100);}
+       lerSensorDeLinha();
+       if(A < preto && B < preto){
+       while(A < preto && B < preto){
        Frente();}
+       if(VB== verde || VB == verde_2 || VB == VD  || VB == VE){
+       Frente();}
+       }
+       if(B > branco){
+       lerSensorDeLinha();
+       while(B > branco){
+       Frente();}
+       }
+       lerSensorDeLinha();
+       if ((VB == verde) || (VB == verde_2)
+        || (VB == VD)  || (VB == VE)){
+       lerSensorDeLinha();
+       while((VB == verde) || (VB == verde_2)
+        || (VB == VD)  || (VB == VE)){
+        Frente();}
+        }
        lerSensorDeLinha();
        if(B < preto){
          Frente();
-         Wait(200);}
+         Wait(250);}
         lerSensorDeLinha();
-        if(B > branco){
+        if(B > branco || B < preto){
          RotateMotorEx(OUT_BC, 60, 370, -100, true, true);
          Parar();
          Wait(10);
          Tras_2();
-         Wait(1);
-
+         Wait(15);
+         Frente();
+         Wait(5);
+         
          ResetRotationCount(OUT_B);
          }
         //---Verde falso---
@@ -481,7 +558,7 @@ void seguidorVerde(){
        }
     }
        Seguidor();
-}
+  }
 //======================================================================================
 //--- Funções para controle dos motores que desvia do obstaculo com mais velocidade ---
 
@@ -526,7 +603,7 @@ void desvioEsquerda(){
      lerSensorDeLinha();
       //Esquerda
       Tras();
-      Wait(600);
+      Wait(800);
       Parar();
       Wait(100);
       Esquerda_O();
@@ -539,9 +616,16 @@ void desvioEsquerda(){
       Wait(10);
       OnFwd(OUT_B, 20);
       OnFwd(OUT_C, 80);
-      Wait(4200);
+      Wait(2100);
       Parar();
       Wait(10);
+      Frente_O();
+      Wait(1000);
+      Parar();
+      Wait(10);
+      OnFwd(OUT_B, 10);
+      OnFwd(OUT_C, 100);
+      Wait(1500);
 
       lerSensorDeLinha();
       if(A > branco || B > branco){
@@ -557,8 +641,63 @@ void desvioEsquerda(){
          Wait(10);}
          lerSensorDeLinha();
          if(A > branco){
-         while(A > branco){
-          Esquerda();}
+         Esquerda();
+         Wait(1200);
+          Tras();
+          Wait(7);
+          ResetRotationCount(OUT_B);
+         }
+lerSensorDeLinha();
+}
+
+void desvioDireita(){
+
+     lerSensorDeLinha();
+      //Direita
+      Tras();
+      Wait(800);
+      Parar();
+      Wait(100);
+      Direita_O();
+      Wait(1000);
+      Parar();
+      Wait(100);
+      Frente_O();
+      Wait(500);
+      Parar();
+      Wait(10);
+      OnFwd(OUT_C, 20);
+      OnFwd(OUT_B, 80);
+      Wait(2100);
+      Parar();
+      Wait(10);
+      Frente_O();
+      Wait(1000);
+      Parar();
+      Wait(10);
+      OnFwd(OUT_C, 10);
+      OnFwd(OUT_B, 100);
+      Wait(1500);
+
+      lerSensorDeLinha();
+      if(A > branco || B > branco){
+      while(A > branco || B > branco){
+           Frente();}
+      }
+
+      lerSensorDeLinha();
+      if(A < preto || B < preto){
+         Frente();
+         Wait(600);
+         Parar();
+         Wait(10);}
+         lerSensorDeLinha();
+         if(B > branco){
+         Direita();
+         Wait(1200);
+          Tras();
+          Wait(7);
+          ResetRotationCount(OUT_B);
          }
 lerSensorDeLinha();
 }
@@ -570,6 +709,7 @@ lerSensorDeLinha();
 //--- Função dos Triangulos no resgate ---
 void t_1(){
 
+       lerResgate();
       //resgate após o toque
       Tras_O();
       Wait(560);
@@ -585,13 +725,91 @@ void t_1(){
       Wait(10);
 
       //Testar 2 Parede depois do triangulo.
-      RotateMotor(OUT_BC, 100, 1900);
+      RotateMotor(OUT_BC, 100, 1700);
       Parar();
       Wait(10);
       lerResgate();
        if(Resgate == 0){
         RV();
       }
+      
+      Parar();
+      Wait(10);
+      OnRev(OUT_B, 90);
+      OnRev(OUT_C, 30);
+      Wait(1800);
+      Parar();
+      Wait(10);
+      Tras();
+      Wait(1000);
+      Parar();
+      Wait(10);
+      OnRev(OUT_C, 80);
+      OnFwd(OUT_B, 100);
+      Wait(1040);
+      Parar();
+      Wait(10);
+
+      //Soltar vitimias
+      
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);
+         Parar();
+         Wait(10);}
+         }
+
+      Direita();
+      Wait(1300);
+      Parar();
+      Wait(10);
+      RotateMotor(OUT_BC, 100, 1900);
+      Parar();
+      Wait(10);
+
+      //Testar 2 Parede depois do triangulo
+      lerResgate();
+       if(Resgate == 0){
+        RV();
+      }
+      
       Parar();
       Wait(10);
       OnFwd(OUT_B, 80);
@@ -618,6 +836,7 @@ void t_1(){
        if(Resgate == 0){
        RV();
       }
+      
       Parar();
       Wait(10);
       OnFwd(OUT_B, 80);
@@ -704,20 +923,241 @@ void t_1(){
         Parar();
         Wait(10);
         Esquerda_O();
-        Wait(2000);
+        Wait(1800);
         Parar();
         Wait(10);
 
         //Soltar vitimias
-        RotateMotor(OUT_BC, 70, -400);
-        Parar();
-        Wait(200);
-        Rampa();
+        
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);
+         Parar();
+         Wait(10);}
+         }
+         
+
+      //---Repetir Resgate T_1---
+  repeat(2){
+
+      Direita();
+      Wait(1300);
+      Parar();
+      Wait(10);
+      RotateMotor(OUT_BC, 100, 1990);
+      Parar();
+      Wait(10);
+
+      //Testar 2 Parede depois do triangulo.
+      Parar();
+      Wait(10);
+      lerResgate();
+       if(Resgate == 0){
+        RV();
+      }
+
+      Parar();
+      Wait(10);
+      OnFwd(OUT_B, 80);
+      OnFwd(OUT_C, 20);
+      Wait(3300);
+      Parar();
+      Wait(10);
+      Tras_O();
+      Wait(1550);
+      Parar();
+      Wait(1);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      Direita();
+      Wait(300);
+
+      //Testar 3 Parede
+      RotateMotor(OUT_BC, 100, 2500);
+      Parar();
+      Wait(10);
+      lerResgate();
+       if(Resgate == 0){
+       RV();
+      }
+
+      Parar();
+      Wait(10);
+      OnFwd(OUT_B, 80);
+      OnFwd(OUT_C, 20);
+      Wait(3300);
+      Parar();
+      Wait(10);
+      Tras_O();
+      Wait(1550);
+      Parar();
+      Wait(1);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      Direita();
+      Wait(300);
+
+      //Testar madeira
+      RotateMotor(OUT_BC, 100, 900);
+      Parar();
+      Wait(10);
+      lerResgate();
+       if(Resgate == 0){
+       Tras_O();
+       Wait(250);
+       Parar();
+       Wait(1);
+       Esquerda_O();
+       Wait(550);
+       Parar();
+       Wait(10);
+       Frente_O();
+       Wait(300);
+       Parar();
+       Wait(10);
+       Direita_O();
+       Wait(200);
+       Parar();
+       Wait(10);
+      }
+      if(Resgate == 1){
+        Esquerda();
         Wait(100);
-        RotateMotor(OUT_BC, 70, -250);
         Parar();
-        Wait(200);
-       }
+        Wait(1);}
+
+      RotateMotor(OUT_BC, 100, 1400);
+      Parar();
+      Wait(10);
+
+      //Testar 4 parede
+      lerResgate();
+       if(Resgate == 0){
+       RV();
+      }
+      Parar();
+      Wait(10);
+      RotateMotor(OUT_B, 100, 400);
+      Parar();
+      Wait(10);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      RotateMotor(OUT_BC, 100, 1400);
+      lerResgate();
+
+       //Teste de trinagulo de volta.
+       if(Resgate == 0){
+        Parar();
+        Wait(10);
+        Tras();
+        Wait(20);
+        Garra_S();
+        Wait(2000);
+        Garra_P();
+        Wait(1);
+        Esquerda_O();
+        Wait(600);
+        Parar();
+        Wait(10);
+        Rampa();
+        Wait(1600);
+        Parar();
+        Wait(10);
+        Esquerda_O();
+        Wait(1800);
+        Parar();
+        Wait(10);
+
+        //Soltar vitimias
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);
+         Parar();
+         Wait(10);}
+         }
+        }
+      }
+    }
+        
 }
 
 void t_2(){
@@ -731,8 +1171,7 @@ void t_2(){
       Wait(200);
       Parar();
       Wait(10);
-      RotateMotor(OUT_BC, 100, 1000);
-      RotateMotor(OUT_BC, 100, 3000);
+      RotateMotor(OUT_BC, 100, 3500);
       Parar();
       Wait(10);
       lerResgate();
@@ -743,145 +1182,345 @@ void t_2(){
       Wait(10);
       OnRev(OUT_B, 90);
       OnRev(OUT_C, 30);
-      Wait(1400);
+      Wait(1970);
       Parar();
       Wait(10);
       Tras();
-      Wait(900);
+      Wait(1000);
       Parar();
       Wait(10);
-      OnRev(OUT_C, 90);
-      OnFwd(OUT_B, 90);
-      Wait(800);
+      OnRev(OUT_C, 100);
+      OnFwd(OUT_B, 100);
+      Wait(970);
       Parar();
       Wait(10);
-      RotateMotor(OUT_BC, 70, -200);
+      
+     //Soltar vitimias
+     Garra_D();
+     Wait(2000);
+     Garra_P();
+     Wait(10);
+     
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);
+         Parar();
+         Wait(10);}
+         }
+
+      Direita();
+      Wait(1300);
       Parar();
-      Wait(200);
-      Rampa();
-      Wait(100);
-      RotateMotor(OUT_BC, 70, -200);
+      Wait(10);
+      
+      RotateMotor(OUT_BC, 100, 1800);
       Parar();
-      Wait(200);
+      Wait(10);
 
-
-
-      // Testar madeira
-      RotateMotor(OUT_BC, 80, 1300);
+      //Testar 3 Parede depois do triangulo.
+      RotateMotor(OUT_BC, 100, 1400);
+      Parar();
+      Wait(10);
       lerResgate();
        if(Resgate == 0){
-          Tras_O();
-          Wait(250);
-          Parar();
-          Wait(10);
-          Esquerda_O();
-          Wait(600);
-          Parar();
-          Wait(10);
-       }
+        RV();
+      }
 
-       //Parede 4
-       RotateMotor(OUT_BC, 80, 1500);
-       lerResgate();
-        if(Resgate == 0){
-           RV();
-        }
+      Parar();
+      Wait(10);
+      OnFwd(OUT_B, 80);
+      OnFwd(OUT_C, 20);
+      Wait(3100);
+      Parar();
+      Wait(10);
+      Tras_O();
+      Wait(1550);
+      Parar();
+      Wait(1);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      Direita();
+      Wait(300);
+      
+      //Testar madeira
+      RotateMotor(OUT_BC, 100, 900);
+      Parar();
+      Wait(10);
+      lerResgate();
+       if(Resgate == 0){
+       Tras_O();
+       Wait(250);
+       Parar();
+       Wait(1);
+       Esquerda_O();
+       Wait(550);
+       Parar();
+       Wait(10);
+       Frente_O();
+       Wait(300);
+       Parar();
+       Wait(10);
+       Direita_O();
+       Wait(200);
+       Parar();
+       Wait(10);
+      }
+      if(Resgate == 1){
+        Esquerda();
+        Wait(100);
+        Parar();
+        Wait(1);}
 
+      RotateMotor(OUT_BC, 100, 1100);
+      Parar();
+      Wait(10);
 
-}
-void t_3(){
-
-}
-//--- Fim das funções dos Triangulos ---
-//======================================================================================
-
-//======================================================================================
-//--- Função para fazer o Resgate de vitimas ---
-
-void RV(){
-
-   Tras();
-   Garra_S();
-   Wait(2000);
-   Garra_P();
-   Wait(10);
-}
-
-//--- Fim da função para o Resgate de vitimas ---
-//======================================================================================
-
-//======================================================================================
-//--- Resgate após ah rampa ---
-void ResInicio(){
-
-     lerResgate();
-     Rampa();
-     Wait(1100);
-     Parar();
-     Wait(10);
-     RotateMotor(OUT_B, 100, 500);
-     Parar();
-     Wait(10);
-     RotateMotor(OUT_C, 100, -200);
-     Parar();
-     Wait(10);
-     Esquerda_O();
-     Wait(350);
-     Tras_O();
-     Wait(300);
-     Parar();
-     Wait(10);
-     Garra_D();
-     Wait(2000);
-     Garra_P();
-     Wait(10);
-
-     //Meio da sala de resgate
-     RotateMotor(OUT_BC, 70, 1900);
-     //Testar Parede.
-     lerResgate();
-     if(Resgate == 0){
-     RV();}
-
-     Parar();
-     Wait(10);
-     RotateMotor(OUT_BC, 80, -1300);
-     Parar();
-     Wait(10);
-     Frente();
-     Wait(50);
-     Parar();
-     Wait(10);
-     Direita_O();
-     Wait(1300);
-     Parar();
-     Wait(10);
-     Tras_O();
-     Wait(1800);
-     Parar();
-     Wait(10);
-     Garra_D();
-     Wait(2000);
-     Garra_P();
-     Wait(10);
-     Direita_O();
-     Wait(400);
-     Parar();
-     Wait(10);
-
-     //Testar Triangulo t_1
-     RotateMotor(OUT_BC, 80, 1000);
-     Parar();
-     Wait(10);
-     lerResgate();
-     if(Resgate == 0){
-       t_1();}
-
-
-     //Testar parede senão houver o t_1
+      //Testar 4 parede
+      lerResgate();
+       if(Resgate == 0){
+       RV();
+      }
+      Parar();
+      Wait(10);
+      RotateMotor(OUT_B, 100, 400);
+      Parar();
+      Wait(10);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      RotateMotor(OUT_BC, 100, 1400);
+      lerResgate();
+      
+     //Testar parede senão houver o
      lerResgate();
      if(Resgate == 1){
-     RotateMotor(OUT_BC, 80, 1400);
+     RotateMotor(OUT_BC, 80, 1200);
+     Parar();
+     Wait(10);}//fim do 1 if
+
+     //Testar parede 1
+     lerResgate();
+     if(Resgate == 0){
+      RV();}
+
+      //apos o toque
+      Parar();
+      Wait(10);
+      OnFwd(OUT_B, 80);
+      OnFwd(OUT_C, 20);
+      Wait(3100);
+      Parar();
+      Wait(10);
+      Tras_O();
+      Wait(1600);
+      Parar();
+      Wait(1);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      Direita();
+      Wait(400);
+      Parar();
+      Wait(10);
+
+      //Testar Triangulo t_2
+      RotateMotor(OUT_BC, 70, 950);
+      Parar();
+      Wait(10);
+      
+      lerResgate();
+      if(Resgate == 0){
+      Tras();
+      Wait(300);
+      Parar();
+      Wait(10);
+      Esquerda();
+      Wait(400);
+      Parar();
+      Wait(10);
+      RotateMotor(OUT_BC, 100, 1000);
+      Parar();
+      Wait(10);}
+         
+      OnRev(OUT_C, 80);
+      OnFwd(OUT_B, 100);
+      Wait(1100);
+      Parar();
+      Wait(10);
+
+     //Soltar vitimias
+     
+     Garra_D();
+     Wait(2000);
+     Garra_P();
+     Wait(10);
+     
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1200);
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1100);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);
+         Parar();
+         Wait(10);}
+ }
+
+   //---Resgate duas vezes---
+   repeat(2){
+
+      Direita();
+      Wait(1300);
+      Parar();
+      Wait(10);
+
+      RotateMotor(OUT_BC, 100, 1800);
+      Parar();
+      Wait(10);
+
+      //Testar 3 Parede depois do triangulo.
+      RotateMotor(OUT_BC, 100, 1700);
+      Parar();
+      Wait(10);
+      lerResgate();
+       if(Resgate == 0){
+        RV();
+      }
+
+      Parar();
+      Wait(10);
+      OnFwd(OUT_B, 80);
+      OnFwd(OUT_C, 20);
+      Wait(3300);
+      Parar();
+      Wait(10);
+      Tras_O();
+      Wait(1550);
+      Parar();
+      Wait(1);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      Direita();
+      Wait(300);
+
+      //Testar madeira
+      RotateMotor(OUT_BC, 100, 900);
+      Parar();
+      Wait(10);
+      lerResgate();
+       if(Resgate == 0){
+       Tras_O();
+       Wait(250);
+       Parar();
+       Wait(1);
+       Esquerda_O();
+       Wait(550);
+       Parar();
+       Wait(10);
+       Frente_O();
+       Wait(300);
+       Parar();
+       Wait(10);
+       Direita_O();
+       Wait(200);
+       Parar();
+       Wait(10);
+      }
+      if(Resgate == 1){
+        Esquerda();
+        Wait(100);
+        Parar();
+        Wait(1);}
+
+      RotateMotor(OUT_BC, 100, 1400);
+      Parar();
+      Wait(10);
+
+      //Testar 4 parede
+      lerResgate();
+       if(Resgate == 0){
+       RV();
+      }
+      Parar();
+      Wait(10);
+      RotateMotor(OUT_B, 100, 400);
+      Parar();
+      Wait(10);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      RotateMotor(OUT_BC, 100, 1400);
+      lerResgate();
+
+     //Testar parede senão houver o
+     lerResgate();
+     if(Resgate == 1){
+     RotateMotor(OUT_BC, 80, 1200);
      Parar();
      Wait(10);}//fim do 1 if
 
@@ -915,11 +1554,481 @@ void ResInicio(){
       RotateMotor(OUT_BC, 70, 1100);
       Parar();
       Wait(10);
+
+      lerResgate();
+      if(Resgate == 0){
+      Tras();
+      Wait(300);
+      Parar();
+      Wait(10);
+      Esquerda();
+      Wait(460);
+      Parar();
+      Wait(10);
+      RotateMotor(OUT_BC, 100, 1000);
+      Parar();
+      Wait(10);}
+
+      OnRev(OUT_C, 90);
+      OnFwd(OUT_B, 100);
+      Wait(1100);
+      Parar();
+      Wait(10);
+
+     //Soltar vitimias
+     Garra_D();
+     Wait(2000);
+     Garra_P();
+     Wait(10);
+     
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);
+         Parar();
+         Wait(10);}
+         }
+     }
+}
+
+void t_3(){
+
+      lerResgate();
+      Tras();
+      Wait(30);
+      Parar();
+      Wait(10);
+      Esquerda();
+      Wait(400);
+      Parar();
+      Wait(10);
+      RotateMotor(OUT_BC, 100, 1000);
+      Parar();
+      Wait(10);
+      
+      //Testar madeira
+      RotateMotor(OUT_BC, 100, 700);
+      Parar();
+      Wait(10);
+      lerResgate();
+       if(Resgate == 0){
+       Tras_O();
+       Wait(250);
+       Parar();
+       Wait(1);
+       Esquerda_O();
+       Wait(550);
+       Parar();
+       Wait(10);
+       Frente_O();
+       Wait(300);
+       Parar();
+       Wait(10);
+       Direita_O();
+       Wait(200);
+       Parar();
+       Wait(10);
+      }
+      if(Resgate == 1){
+        Esquerda();
+        Wait(300);
+        Parar();
+        Wait(1);}
+
+      RotateMotor(OUT_BC, 100, 1100);
+      Parar();
+      Wait(10);
+
+      //Testar 4 parede
+      lerResgate();
+       if(Resgate == 0){
+       RV();
+      }
+      
+      Parar();
+      Wait(10);
+      OnRev(OUT_B, 90);
+      OnRev(OUT_C, 30);
+      Wait(1600);
+      Parar();
+      Wait(10);
+      Tras();
+      Wait(800);
+      Parar();
+      Wait(10);
+      OnRev(OUT_C, 100);
+      OnFwd(OUT_B, 90);
+      Wait(750);
+      Parar();
+      Wait(10);
+
+     //Soltar vitimias
+     Garra_D();
+     Wait(2000);
+     Garra_P();
+     Wait(10);
+     
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);}
+
+        lerResgate();
+        if(Resgate == 1){
+         OnRev(OUT_BC, 90);
+         Wait(1000);}
+
+        lerResgate();
+        if(Resgate == 0){
+         Parar();
+         Wait(1000);
+         Frente();
+         Wait(600);
+         Parar();
+         Wait(10);}
+         }
+
+    //Resgate 2 VAR.
+    //repeat(2){
+         lerResgate();
+
+         OnRev(OUT_B, 98);
+         OnFwd(OUT_C, 100);
+         Wait(520);
+         Parar();
+         Wait(10);
+         RotateMotor(OUT_BC, 100, 800);
+         Parar();
+         Wait(10);
+         Esquerda();
+         Wait(100);
+         Parar();
+         Wait(10);
+         RotateMotor(OUT_BC, 100, 1500);
+         Parar();
+         Wait(10);
+         
+         lerResgate();
+         if(Resgate == 0){
+          RV();}
+          
+         Esquerda();
+         Wait(100);
+         RotateMotor(OUT_BC, 100, 1200);
+         Parar();
+         Wait(10);
+         
+         lerResgate();
+         if(Resgate == 0){
+          RV();}
+          
+         Parar();
+         Wait(10);
+         Tras();
+         Wait(200);
+         Parar();
+         Wait(10);
+         OnFwd(OUT_B, 90);
+         OnFwd(OUT_C, 20);
+         Wait(2600);
+         Parar();
+         Wait(10);
+         Tras_O();
+         Wait(1300);
+         Parar();
+         Wait(1);
+         Garra_D();
+         Wait(2000);
+         Garra_P();
+         Wait(10);
+         Direita();
+         Wait(400);
+         Parar();
+         Wait(10);
+         
+         RotateMotor(OUT_BC, 100, 1500);
+         Parar();
+         Wait(10);
+          //testar parede 1
+         if(Resgate == 0){
+          RV();}
+         Tras();
+         Wait(400);
+         Parar();
+         Wait(10);
+         OnFwd(OUT_B, 80);
+         OnFwd(OUT_C, 20);
+         Wait(2800);
+         Parar();
+         Wait(10);
+         Tras_O();
+         Wait(1600);
+         Parar();
+         Wait(1);
+         Garra_D();
+         Wait(2000);
+         Garra_P();
+         Wait(10);
+         Direita();
+         Wait(400);
+         Parar();
+         Wait(10);
+
+      RotateMotor(OUT_BC, 100, 1600);
+      Parar();
+      Wait(10);
+
+      //testar parede 2
+     if(Resgate == 0){
+        RV();
+      }
+
+      Parar();
+      Wait(10);
+      Tras();
+      Wait(150);
+      Parar();
+      Wait(10);
+      OnFwd(OUT_B, 80);
+      OnFwd(OUT_C, 20);
+      Wait(3000);
+      Parar();
+      Wait(10);
+      Tras_O();
+      Wait(1550);
+      Parar();
+      Wait(1);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      Direita();
+      Wait(300);
+
+}
+
+//--- Fim das funções dos Triangulos ---
+//======================================================================================
+
+//======================================================================================
+//--- Função para fazer o Resgate de vitimas ---
+
+void RV(){
+
+   Tras();
+   OnRev(OUT_A, 99);
+   Wait(2000);
+   Garra_P();
+   Wait(10);
+   
+   lerResgate();
+}
+
+//--- Fim da função para o Resgate de vitimas ---
+//======================================================================================
+
+//======================================================================================
+//--- Resgate após ah rampa ---
+void ResInicio(){
+
+     lerResgate();
+     Rampa();
+     Wait(1300);
+     Parar();
+     Wait(10);
+     RotateMotor(OUT_B, 100, 460);
+     Parar();
+     Wait(10);
+     RotateMotor(OUT_C, 100, -200);
+     Parar();
+     Wait(10);
+     Esquerda_O();
+     Wait(350);
+     Tras_O();
+     Wait(800);
+     Parar();
+     Wait(10);
+     Garra_D();
+     Wait(2000);
+     Garra_P();
+     Wait(10);
+
+     //Meio da sala de resgate
+     RotateMotor(OUT_BC, 100, 1900);
+     //Testar Parede.
+     lerResgate();
+     if(Resgate == 0){
+     RV();}
+
+     Parar();
+     Wait(10);
+     RotateMotor(OUT_BC, 100, -1300);
+     Parar();
+     Wait(10);
+     Frente();
+     Wait(50);
+     Parar();
+     Wait(10);
+     Direita_O();
+     Wait(1670);
+     Parar();
+     Wait(10);
+     Tras_O();
+     Wait(1800);
+     Parar();
+     Wait(10);
+     Garra_D();
+     Wait(2000);
+     Garra_P();
+     Wait(10);
+     Direita_O();
+     Wait(250);
+     Parar();
+     Wait(10);
+
+     //Testar Triangulo t_1
+     RotateMotor(OUT_BC, 60, 950);
+     Parar();
+     Wait(10);
+     lerResgate();
+     if(Resgate == 0){
+       t_1();}
+
+
+     //Testar parede senão houver o t_1
+     lerResgate();
+     if(Resgate == 1){
+     RotateMotor(OUT_BC, 80, 1100);
+     Parar();
+     Wait(10);}//fim do 1 if
+
+     //Testar parede 1
+     lerResgate();
+     if(Resgate == 0){
+      RV();}
+
+      //apos o toque
+      Parar();
+      Wait(10);
+      OnFwd(OUT_B, 80);
+      OnFwd(OUT_C, 20);
+      Wait(3140);
+      Parar();
+      Wait(10);
+      Tras_O();
+      Wait(2000);
+      Parar();
+      Wait(1);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      Direita();
+      Wait(400);
+      Parar();
+      Wait(10);
+
+      //Testar Triangulo t_2
+      RotateMotor(OUT_BC, 60, 950);
+      Parar();
+      Wait(10);
       lerResgate();
       if(Resgate == 0){
          t_2();
       }
 
+      //se não houver triangulo no T_2
+      lerResgate();
+      if(Resgate == 1){
+         RotateMotor(OUT_BC, 80, 1400);
+         Parar();
+         Wait(10);}
+
+     //Testar parede 2
+     lerResgate();
+     if(Resgate == 0){
+     RV();}
+     
+     //apos o toque
+      Parar();
+      Wait(10);
+      OnFwd(OUT_B, 80);
+      OnFwd(OUT_C, 20);
+      Wait(3190);
+      Parar();
+      Wait(10);
+      Tras_O();
+      Wait(2000);
+      Parar();
+      Wait(1);
+      Garra_D();
+      Wait(2000);
+      Garra_P();
+      Wait(10);
+      Direita();
+      Wait(400);
+      Parar();
+      Wait(10);
+      
+      //Testar Triangulo t_3
+      RotateMotor(OUT_BC, 70, 1100);
+      Parar();
+      Wait(10);
+      lerResgate();
+      if(Resgate == 0){
+         t_3();
+      }
+     
      lerResgate();
      lerDistancia();
      lerSensorDeLinha();
@@ -945,8 +2054,11 @@ void seguidorRampa(){
      {
       Direita2();
      }
- if(A < preto && B < preto){
- while(A < preto && B < preto){
+ if(A < preto && B < preto || A == 255 && B == 255
+ || A > 110 && A < 145 && B > 110 && B < 145)
+ {
+ while(A < preto && B < preto || A == 255 && B == 255
+ || A > 110 && A < 145 && B > 110 && B < 145){
        Rampa();
        Wait(1000);
        Parar();
